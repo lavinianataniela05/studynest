@@ -1,5 +1,5 @@
 // components/dashboard/Sidebar.tsx
-"use client";
+'use client';
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,17 +20,17 @@ import { Button } from "@/components/UI/Button";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Course Material", href: "/dashboard/course-material", icon: BookOpen },
-  { name: "Discuss Buddy", href: "/dashboard/discuss-buddy", icon: MessageSquare },
-  { name: "Goal Setting", href: "/dashboard/goal-setting", icon: Target },
-  { name: "Schedule", href: "/dashboard/schedule-timetable", icon: Calendar },
-  { name: "Study Bot", href: "/dashboard/study-bot", icon: Bot },
-  { name: "Study Tracker", href: "/dashboard/study-tracker", icon: Clock },
-  { name: "To-Do List", href: "/dashboard/todo-list", icon: ListChecks },
+  { name: "Course Material", href: "/course-material", icon: BookOpen },
+  { name: "Discuss Buddy", href: "/discuss-buddy", icon: MessageSquare },
+  { name: "Goal Setting", href: "/goal-setting", icon: Target },
+  { name: "Schedule", href: "/schedule-timetable", icon: Calendar },
+  { name: "Study Bot", href: "/study-bot", icon: Bot },
+  { name: "Study Tracker", href: "/study-tracker", icon: Clock },
+  { name: "To-Do List", href: "/todo-list", icon: ListChecks },
 ];
 
 const bottomNavItems = [
-  { name: "Settings", href: "/dashboard/settings", icon: Settings },
+  { name: "Settings", href: "/settings", icon: Settings },
   { name: "Logout", href: "/logout", icon: LogOut },
 ];
 
