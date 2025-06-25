@@ -1,307 +1,347 @@
 'use client'
-
-import React, { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
-  BookOpen, MessageSquare, Target, Calendar, Bot, Clock, ListChecks,
-  TrendingUp, CheckCircle, Activity, Flame, Star, Sparkles
+  Calendar, Clock, Plus, ChevronDown, ChevronUp,
+  BookOpen, Target, Bell, MoreHorizontal, Check
 } from 'lucide-react'
-import Link from 'next/link'
 
-// Card Component
-type CardProps = {
-  children: React.ReactNode
-  className?: string
-  [key: string]: any
+type ScheduleItem = {
+  id: string
+  title: string
+  course: string
+  day: string
+  startTime: string
+  endTime: string
+  location: string
+  isCompleted: boolean
+  hasReminder: boolean
 }
 
-const Card = ({ children, className = '', ...props }: CardProps) => (
-  <motion.div 
-    whileHover={{ y: -2 }}
-    className={`bg-white rounded-xl border border-gray-100 shadow-xs hover:shadow-sm transition-all ${className}`}
-    {...props}
-  >
-    {children}
-  </motion.div>
-)
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-// Study Progress Component
-const StudyProgress = () => {
-  const [progress, setProgress] = useState(0)
+export default function Schedule() {
+  const [activeDay, setActiveDay] = useState<string>(days[new Date().getDay() - 1] || 'Monday')
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newItem, setNewItem] = useState({
+    title: '',
+    course: '',
+    day: 'Monday',
+    startTime: '09:00',
+    endTime: '10:00',
+    location: '',
+    isCompleted: false,
+    hasReminder: true
+  })
 
-  useEffect(() => {
-    const timer = setTimeout(() => setProgress(68), 500)
-    return () => clearTimeout(timer)
-  }, [])
+  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([
+    {
+      id: '1',
+      title: 'Advanced Calculus',
+      course: 'MATH-301',
+      day: 'Monday',
+      startTime: '09:00',
+      endTime: '10:30',
+      location: 'Science Bldg Room 203',
+      isCompleted: false,
+      hasReminder: true
+    },
+    {
+      id: '2',
+      title: 'Literature Seminar',
+      course: 'ENG-210',
+      day: 'Wednesday',
+      startTime: '14:00',
+      endTime: '15:30',
+      location: 'Humanities Bldg Room 105',
+      isCompleted: false,
+      hasReminder: true
+    },
+    {
+      id: '3',
+      title: 'Study Group',
+      course: 'PHYS-202',
+      day: 'Friday',
+      startTime: '16:00',
+      endTime: '17:30',
+      location: 'Library Study Room C',
+      isCompleted: false,
+      hasReminder: false
+    }
+  ])
 
-  return (
-    <Card className="p-5 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-50 to-emerald-100 rounded-full blur-xl opacity-60" />
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-green-50 rounded-lg">
-          <TrendingUp className="w-5 h-5 text-green-600" />
-        </div>
-        <div>
-          <h3 className="font-medium text-gray-800">Study Progress</h3>
-          <p className="text-xs text-gray-500">This week</p>
-        </div>
-      </div>
+  const handleAddItem = () => {
+    if (!newItem.title.trim()) return
+    
+    const item: ScheduleItem = {
+      id: Date.now().toString(),
+      ...newItem
+    }
+    
+    setScheduleItems([...scheduleItems, item])
+    setNewItem({
+      title: '',
+      course: '',
+      day: 'Monday',
+      startTime: '09:00',
+      endTime: '10:00',
+      location: '',
+      isCompleted: false,
+      hasReminder: true
+    })
+    setShowAddForm(false)
+  }
 
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <span className="text-2xl font-bold text-gray-800">{progress}%</span>
-          <span className="text-xs text-gray-500">24/35 hours</span>
-        </div>
-
-        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 1.5, ease: 'easeOut' }}
-            className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full"
-          />
-        </div>
-      </div>
-    </Card>
-  )
-}
-
-// Upcoming Tasks
-const UpcomingTasks = () => {
-  const tasks = [
-    { id: 1, title: 'Math Assignment', due: 'Today', priority: 'high', completed: false },
-    { id: 2, title: 'History Essay', due: 'Tomorrow', priority: 'medium', completed: false },
-    { id: 3, title: 'Science Lab Report', due: 'Friday', priority: 'low', completed: true }
-  ]
-  const [taskList, setTaskList] = useState(tasks)
-
-  const toggleTask = (id: number) => {
-    setTaskList(prev => prev.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
+  const toggleCompletion = (id: string) => {
+    setScheduleItems(scheduleItems.map(item => 
+      item.id === id ? { ...item, isCompleted: !item.isCompleted } : item
     ))
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-50 text-red-600'
-      case 'medium': return 'bg-amber-50 text-amber-600'
-      case 'low': return 'bg-green-50 text-green-600'
-      default: return 'bg-gray-50 text-gray-600'
-    }
+  const toggleReminder = (id: string) => {
+    setScheduleItems(scheduleItems.map(item => 
+      item.id === id ? { ...item, hasReminder: !item.hasReminder } : item
+    ))
   }
 
-  return (
-    <Card className="p-5 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-teal-50 to-emerald-100 rounded-full blur-xl opacity-60" />
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-teal-50 rounded-lg">
-            <CheckCircle className="w-5 h-5 text-teal-600" />
-          </div>
-          <div>
-            <h3 className="font-medium text-gray-800">Upcoming Tasks</h3>
-            <p className="text-xs text-gray-500">{taskList.filter(t => !t.completed).length} pending</p>
-          </div>
-        </div>
-        <motion.button 
-          whileHover={{ scale: 1.05 }} 
-          whileTap={{ scale: 0.95 }} 
-          className="p-1 hover:bg-gray-50 rounded-lg text-gray-500 hover:text-gray-700"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </motion.button>
-      </div>
-
-      <div className="space-y-2">
-        {taskList.slice(0, 3).map(task => (
-          <motion.div
-            key={task.id}
-            layout
-            className={`flex items-center gap-3 p-3 rounded-lg ${task.completed ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'}`}
-          >
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => toggleTask(task.id)}
-              className={`w-4 h-4 rounded-sm border flex items-center justify-center flex-shrink-0 ${
-                task.completed 
-                  ? 'bg-emerald-500 border-emerald-500' 
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              {task.completed && (
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              )}
-            </motion.button>
-            <div className="flex-1 min-w-0">
-              <p className={`text-sm font-medium truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
-                {task.title}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs text-gray-500">{task.due}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${getPriorityColor(task.priority)}`}>
-                  {task.priority}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </Card>
-  )
-}
-
-// Recent Activity
-const RecentActivity = () => {
-  const activities = [
-    { id: 1, action: 'Completed Math Quiz', time: '2 hours ago', icon: <Star className="w-4 h-4 text-amber-500" /> },
-    { id: 2, action: 'Added new notes', time: '4 hours ago', icon: <BookOpen className="w-4 h-4 text-blue-500" /> },
-    { id: 3, action: 'Study session: 45 min', time: '1 day ago', icon: <Clock className="w-4 h-4 text-teal-500" /> }
-  ]
+  const filteredItems = scheduleItems.filter(item => item.day === activeDay)
 
   return (
-    <Card className="p-5 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-full blur-xl opacity-60" />
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-blue-50 rounded-lg">
-          <Activity className="w-5 h-5 text-blue-600" />
-        </div>
-        <div>
-          <h3 className="font-medium text-gray-800">Recent Activity</h3>
-          <p className="text-xs text-gray-500">Your progress</p>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        {activities.map((activity, index) => (
-          <motion.div
-            key={activity.id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <div className="p-1.5 bg-white rounded-lg shadow-xs border border-gray-100">
-              {activity.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-700 truncate">{activity.action}</p>
-              <p className="text-xs text-gray-500">{activity.time}</p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </Card>
-  )
-}
-
-// Dashboard Page
-export default function Dashboard() {
-  const [timeGreeting, setTimeGreeting] = useState('')
-  const [studyStreak, setStudyStreak] = useState(7)
-
-  useEffect(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) setTimeGreeting('Good morning')
-    else if (hour < 17) setTimeGreeting('Good afternoon')
-    else setTimeGreeting('Good evening')
-  }, [])
-
-  const features = [
-    { title: 'Course Material', description: 'Organize your study resources', icon: <BookOpen className="w-5 h-5" />, href: '/dashboard/course-material', color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    { title: 'Discuss Buddy', description: 'Connect with study peers', icon: <MessageSquare className="w-5 h-5" />, href: '/dashboard/discuss-buddy', color: 'text-blue-500', bg: 'bg-blue-50' },
-    { title: 'Goal Setting', description: 'Track academic objectives', icon: <Target className="w-5 h-5" />, href: '/dashboard/goal-setting', color: 'text-amber-500', bg: 'bg-amber-50' },
-    { title: 'Schedule', description: 'Manage your study time', icon: <Calendar className="w-5 h-5" />, href: '/dashboard/schedule-timetable', color: 'text-teal-500', bg: 'bg-teal-50' },
-    { title: 'Study Bot', description: 'AI-powered learning assistant', icon: <Bot className="w-5 h-5" />, href: '/dashboard/study-bot', color: 'text-purple-500', bg: 'bg-purple-50' },
-    { title: 'Study Tracker', description: 'Monitor learning sessions', icon: <Clock className="w-5 h-5" />, href: '/dashboard/study-tracker', color: 'text-green-500', bg: 'bg-green-50' },
-    { title: 'To-Do List', description: 'Manage daily tasks', icon: <ListChecks className="w-5 h-5" />, href: '/dashboard/todo-list', color: 'text-cyan-500', bg: 'bg-cyan-50' }
-  ]
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Welcome Card */}
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl p-6 shadow-xs border border-gray-100"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-1">{timeGreeting}, Scholar! <span className="text-emerald-500">🌱</span></h1>
-              <p className="text-gray-600">Ready to nurture your mind and grow your knowledge today?</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-full">
-                <Flame className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-medium text-amber-700">{studyStreak} day streak</span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/30 p-4 sm:p-6">
+      <div className="ml-0 lg:ml-72 transition-all duration-300 ease-in-out">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="backdrop-blur-sm bg-white/90 rounded-2xl border border-white/20 shadow-lg p-6 relative overflow-hidden">
+            <div className="absolute -top-6 -right-6 w-32 h-32 bg-gradient-to-br from-blue-400/15 to-teal-500/15 rounded-full blur-2xl" />
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-teal-500 rounded-xl shadow-lg">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-gray-800 text-lg">Study Schedule</h2>
+                  <p className="text-sm text-gray-600">Manage your classes and study sessions</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full">
-                <Star className="w-4 h-4 text-emerald-500" />
-                <span className="text-sm font-medium text-emerald-700">Level 3 Learner</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-4">
-          <StudyProgress />
-          <UpcomingTasks />
-          <RecentActivity />
-        </div>
-
-        {/* Learning Tools */}
-        <div>
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Your Learning Tools</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {features.map((feature, i) => (
-              <motion.div 
-                key={feature.title} 
-                initial={{ opacity: 0, y: 10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: i * 0.1 }}
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="px-4 py-2 bg-gradient-to-br from-emerald-400 to-teal-500 text-white rounded-lg font-medium flex items-center gap-2"
               >
-                <Link href={feature.href}>
-                  <Card className="group p-5 hover:border-emerald-100 transition-colors">
-                    <div className={`p-3 rounded-lg ${feature.bg} ${feature.color} w-fit mb-3`}>
-                      {feature.icon}
-                    </div>
-                    <h4 className="font-medium text-gray-800 group-hover:text-gray-900 mb-1">{feature.title}</h4>
-                    <p className="text-sm text-gray-500 group-hover:text-gray-600">{feature.description}</p>
-                    <div className="mt-3 flex justify-end">
-                      <div className="text-gray-400 group-hover:text-emerald-500 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M5 12h14"></path>
-                          <path d="M12 5l7 7-7 7"></path>
-                        </svg>
+                <Plus className="w-4 h-4" />
+                Add Schedule
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Add New Item Form */}
+          {showAddForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="backdrop-blur-sm bg-white/90 rounded-2xl border border-white/20 shadow-lg p-6 overflow-hidden"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={newItem.title}
+                    onChange={(e) => setNewItem({...newItem, title: e.target.value})}
+                    className="w-full p-3 border border-white/30 bg-white/50 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300 outline-none"
+                    placeholder="e.g. Calculus Lecture"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
+                  <input
+                    type="text"
+                    value={newItem.course}
+                    onChange={(e) => setNewItem({...newItem, course: e.target.value})}
+                    className="w-full p-3 border border-white/30 bg-white/50 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300 outline-none"
+                    placeholder="e.g. MATH-301"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Day</label>
+                  <select
+                    value={newItem.day}
+                    onChange={(e) => setNewItem({...newItem, day: e.target.value})}
+                    className="w-full p-3 border border-white/30 bg-white/50 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300 outline-none"
+                  >
+                    {days.map(day => (
+                      <option key={day} value={day}>{day}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                    <input
+                      type="time"
+                      value={newItem.startTime}
+                      onChange={(e) => setNewItem({...newItem, startTime: e.target.value})}
+                      className="w-full p-3 border border-white/30 bg-white/50 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                    <input
+                      type="time"
+                      value={newItem.endTime}
+                      onChange={(e) => setNewItem({...newItem, endTime: e.target.value})}
+                      className="w-full p-3 border border-white/30 bg-white/50 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300 outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                  <input
+                    type="text"
+                    value={newItem.location}
+                    onChange={(e) => setNewItem({...newItem, location: e.target.value})}
+                    className="w-full p-3 border border-white/30 bg-white/50 rounded-xl focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300 outline-none"
+                    placeholder="e.g. Room 203"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={newItem.hasReminder}
+                      onChange={(e) => setNewItem({...newItem, hasReminder: e.target.checked})}
+                      className="h-4 w-4 text-emerald-500 rounded border-white/30 focus:ring-emerald-200"
+                    />
+                    <span className="text-sm text-gray-700">Set reminder</span>
+                  </label>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setShowAddForm(false)}
+                  className="px-4 py-2 bg-white/50 border border-white/30 rounded-lg font-medium text-gray-700 hover:bg-white/70"
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleAddItem}
+                  disabled={!newItem.title.trim()}
+                  className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${
+                    newItem.title.trim()
+                      ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Add Schedule
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Day Selector */}
+          <div className="backdrop-blur-sm bg-white/90 rounded-2xl border border-white/20 shadow-lg p-4">
+            <div className="flex overflow-x-auto pb-2">
+              {days.map(day => (
+                <button
+                  key={day}
+                  onClick={() => setActiveDay(day)}
+                  className={`px-4 py-2 rounded-lg mx-1 whitespace-nowrap transition-all ${
+                    activeDay === day
+                      ? 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white shadow-md'
+                      : 'bg-white/50 hover:bg-white/70 text-gray-700'
+                  }`}
+                >
+                  {day}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Schedule Items */}
+          {filteredItems.length > 0 ? (
+            <div className="space-y-4">
+              {filteredItems.map((item) => (
+                <div key={item.id} className="backdrop-blur-sm bg-white/90 rounded-2xl border border-white/20 shadow-lg overflow-hidden">
+                  <div className={`p-6 ${item.isCompleted ? 'opacity-70' : ''}`}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-xl ${
+                          item.isCompleted 
+                            ? 'bg-gray-100 text-gray-500' 
+                            : 'bg-gradient-to-br from-emerald-400 to-teal-500 text-white'
+                        }`}>
+                          {item.isCompleted ? (
+                            <Check className="w-5 h-5" />
+                          ) : (
+                            <BookOpen className="w-5 h-5" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <h3 className={`font-bold ${
+                              item.isCompleted ? 'text-gray-500 line-through' : 'text-gray-800'
+                            }`}>
+                              {item.title}
+                            </h3>
+                            <span className="text-sm px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">
+                              {item.course}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 text-sm mt-1">{item.location}</p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <div className="flex items-center gap-1 text-sm text-gray-500">
+                              <Clock className="w-4 h-4" />
+                              <span>{item.startTime} - {item.endTime}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => toggleReminder(item.id)}
+                          className={`p-2 rounded-lg ${
+                            item.hasReminder 
+                              ? 'text-emerald-500 bg-emerald-100/50' 
+                              : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                        >
+                          <Bell className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => toggleCompletion(item.id)}
+                          className={`p-2 rounded-lg ${
+                            item.isCompleted 
+                              ? 'text-emerald-500 bg-emerald-100/50' 
+                              : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                        >
+                          <Check className="w-5 h-5" />
+                        </button>
+                        <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600">
+                          <MoreHorizontal className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="backdrop-blur-sm bg-white/90 rounded-2xl border border-white/20 shadow-lg p-8 text-center">
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-emerald-400/20 to-teal-500/20 rounded-full flex items-center justify-center mb-4">
+                <Calendar className="w-6 h-6 text-emerald-500" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-800 mb-2">No schedule for {activeDay}</h3>
+              <p className="text-gray-500 max-w-md mx-auto">Add new schedule items to plan your study sessions and classes.</p>
+            </div>
+          )}
         </div>
-
-        {/* Inspirational Quote */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-xl p-6 text-center border border-gray-100 shadow-xs"
-        >
-          <div className="flex justify-center items-center gap-2 mb-3">
-            <BookOpen className="w-5 h-5 text-emerald-500" />
-            <Sparkles className="w-4 h-4 text-amber-400" />
-          </div>
-          <p className="italic text-gray-700 mb-2">"The capacity to learn is a gift; the ability to learn is a skill; the willingness to learn is a choice."</p>
-          <p className="text-xs text-gray-500">- Brian Herbert</p>
-        </motion.div>
       </div>
     </div>
   )
